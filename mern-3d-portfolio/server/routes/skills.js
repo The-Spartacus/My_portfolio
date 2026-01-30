@@ -1,0 +1,19 @@
+const express = require('express');
+const router = express.Router();
+const { protect } = require('../middleware/auth');
+const {
+    getSkills,
+    createSkill,
+    updateSkill,
+    deleteSkill
+} = require('../controllers/skillController');
+
+// Public routes
+router.get('/', getSkills);
+
+// Protected routes (admin only)
+router.post('/', protect, createSkill);
+router.put('/:id', protect, updateSkill);
+router.delete('/:id', protect, deleteSkill);
+
+module.exports = router;

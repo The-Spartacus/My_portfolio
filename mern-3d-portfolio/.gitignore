@@ -1,0 +1,23 @@
+# Dependencies
+**/node_modules/
+
+# Environment
+**/.env
+
+# Build outputs
+**/build/
+**/dist/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# MongoDB local data
+/data/db
