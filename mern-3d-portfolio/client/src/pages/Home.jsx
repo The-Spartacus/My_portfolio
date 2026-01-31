@@ -64,8 +64,8 @@ const Home = () => {
       <div className="fixed bottom-0 left-0 right-0 h-1 bg-green-500/50 z-60"></div>
 
       {/* HERO SECTION - Intro + Game */}
-      <section ref={heroRef} id="home" className="min-h-screen flex items-center relative pt-20 pb-12 px-6 md:px-12 lg:px-20">
-        <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center h-[85vh]">
+      <section ref={heroRef} id="home" className="min-h-screen flex items-center relative pt-24 pb-12 px-4 md:px-12 lg:px-20 overflow-hidden">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center min-h-[85vh] h-auto lg:h-[85vh]">
 
           {/* LEFT COLUMN: Content */}
           <div className="text-left z-10 order-2 lg:order-1 flex flex-col justify-center h-full">
@@ -166,7 +166,7 @@ const Home = () => {
           </div>
 
           {/* RIGHT COLUMN: Game (Game vs Placeholder vs Profile) */}
-          <div className="order-1 lg:order-2 h-full w-full relative">
+          <div className="order-1 lg:order-2 w-full h-[500px] lg:h-full relative mt-8 lg:mt-0">
             {gameActive && (
               <div className="h-full border-2 border-red-500/30 bg-gray-900/50 backdrop-blur rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(239,68,68,0.2)] animate-fadeIn relative">
                 <BombGame active={true} />
