@@ -1,17 +1,21 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { GiGamepad, GiTrophy } from 'react-icons/gi';
+import { GiGamepad, GiTrophy, GiClick } from 'react-icons/gi';
 
 const BombGame = ({ active }) => {
     const canvasRef = useRef(null);
+    const containerRef = useRef(null); // Ref for the div to capture focus
     const [score, setScore] = useState(0);
     const [highScore, setHighScore] = useState(0);
     const [gameState, setGameState] = useState('lobby'); // lobby, playing, gameover
+    const [isFocused, setIsFocused] = useState(false);
+    const [showFocusHint, setShowFocusHint] = useState(false);
+
     const gameStateRef = useRef('lobby');
 
     // Game Refs
     const playerRef = useRef({ x: 200, y: 350, width: 40, height: 40, speed: 6, vx: 0 });
     const bombsRef = useRef([]);
-    const particlesRef = useRef([]); // For explosions
+    const particlesRef = useRef([]);
     const frameRef = useRef(0);
     const scoreRef = useRef(0);
     const requestRef = useRef(null);
@@ -26,19 +30,22 @@ const BombGame = ({ active }) => {
         setGameState('playing');
         gameStateRef.current = 'playing';
         resetGame();
+        // Force focus on start
+        setTimeout(() => containerRef.current?.focus(), 10);
     };
 
     const resetGame = () => {
         const canvas = canvasRef.current;
+        if (!canvas) return;
         setScore(0);
         scoreRef.current = 0;
         frameRef.current = 0;
         bombsRef.current = [];
         particlesRef.current = [];
-        // Center player
+
         playerRef.current = {
-            x: canvas ? canvas.width / 2 - 20 : 200,
-            y: canvas ? canvas.height - 50 : 350,
+            x: canvas.width / 2 - 20,
+            y: canvas.height - 50,
             width: 40,
             height: 40,
             speed: 6,
@@ -80,10 +87,10 @@ const BombGame = ({ active }) => {
         const ctx = canvas.getContext('2d');
 
         // Clear
-        ctx.fillStyle = '#111827'; // Dark BG
+        ctx.fillStyle = '#111827';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw Grid Background
+        // Grid
         ctx.strokeStyle = '#1f2937';
         ctx.lineWidth = 1;
         const gridSize = 40;
@@ -110,8 +117,8 @@ const BombGame = ({ active }) => {
                 p.x += p.speed;
             }
 
-            // Draw Player (Shield Shape)
-            ctx.fillStyle = '#3b82f6'; // Blue
+            // Draw Player
+            ctx.fillStyle = '#3b82f6';
             ctx.shadowColor = '#3b82f6';
             ctx.shadowBlur = 20;
             ctx.beginPath();
@@ -124,10 +131,9 @@ const BombGame = ({ active }) => {
             ctx.fill();
             ctx.shadowBlur = 0;
 
-            // Spawn Bombs
-            // Difficulty Curve: Speed/Rate based on score
-            const difficulty = Math.min(scoreRef.current / 500, 5); // Caps at 2500 score
-            const spawnRate = Math.max(30 - difficulty * 4, 10); // Spawns faster
+            // Spawning
+            const difficulty = Math.min(scoreRef.current / 500, 5);
+            const spawnRate = Math.max(30 - difficulty * 4, 10);
             const bombSpeed = 3 + Math.random() * 2 + difficulty;
 
             if (frameRef.current % Math.floor(spawnRate) === 0) {
@@ -155,7 +161,6 @@ const BombGame = ({ active }) => {
                 ctx.beginPath();
                 ctx.arc(0, 0, 12, 0, Math.PI * 2);
                 ctx.fill();
-                // Fuse
                 ctx.strokeStyle = '#fbbf24';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
@@ -164,9 +169,9 @@ const BombGame = ({ active }) => {
                 ctx.stroke();
                 ctx.restore();
 
-                // Collision
+                // Check Hit
                 if (
-                    bomb.x < p.x + p.width - 8 && // Hitbox tightening
+                    bomb.x < p.x + p.width - 8 &&
                     bomb.x + bomb.width > p.x + 8 &&
                     bomb.y < p.y + p.height - 5 &&
                     bomb.y + bomb.height > p.y + 5
@@ -174,7 +179,6 @@ const BombGame = ({ active }) => {
                     gameOver();
                 }
 
-                // Remove off-screen
                 if (bomb.y > canvas.height) {
                     bombsRef.current.splice(i, 1);
                     scoreRef.current += 10;
@@ -183,7 +187,7 @@ const BombGame = ({ active }) => {
             }
         }
 
-        // Update Particles (Always run for explosion effect)
+        // Particles
         for (let i = particlesRef.current.length - 1; i >= 0; i--) {
             const part = particlesRef.current[i];
             part.x += part.vx;
@@ -205,33 +209,39 @@ const BombGame = ({ active }) => {
         requestRef.current = requestAnimationFrame(gameLoop);
     };
 
+    // Event Handlers for Container
+    const handleKeyDown = (e) => {
+        keysRef.current[e.key] = true;
+        // Prevent scroll only if focused and arrow keys
+        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+            e.preventDefault();
+        }
+    };
+
+    const handleKeyUp = (e) => {
+        keysRef.current[e.key] = false;
+    };
+
+    // Start Loop on Mount (for background)
     useEffect(() => {
-        const handleDown = (e) => {
-            if (active) keysRef.current[e.key] = true;
-            // Prevent scrolling with arrows
-            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].indexOf(e.code) > -1) {
-                e.preventDefault();
-            }
-        };
-        const handleUp = (e) => keysRef.current[e.key] = false;
-
-        window.addEventListener('keydown', handleDown);
-        window.addEventListener('keyup', handleUp);
-
-        // Initial draw for lobby background
-        if (gameState === 'lobby') {
+        if (!requestRef.current) {
             requestRef.current = requestAnimationFrame(gameLoop);
         }
-
-        return () => {
-            window.removeEventListener('keydown', handleDown);
-            window.removeEventListener('keyup', handleUp);
-            cancelAnimationFrame(requestRef.current);
-        };
-    }, [active, gameState]);
+        return () => cancelAnimationFrame(requestRef.current);
+    }, []);
 
     return (
-        <div className="relative w-full h-full bg-gray-900 rounded-2xl overflow-hidden flex flex-col items-center justify-center border-4 border-gray-800 shadow-2xl">
+        <div
+            ref={containerRef}
+            tabIndex={0}
+            className="relative w-full h-full bg-gray-900 rounded-2xl overflow-hidden flex flex-col items-center justify-center border-4 border-gray-800 shadow-2xl focus:outline-none focus:border-blue-500/50 transition-colors"
+            onKeyDown={handleKeyDown}
+            onKeyUp={handleKeyUp}
+            onFocus={() => { setIsFocused(true); setShowFocusHint(false); }}
+            onBlur={() => setIsFocused(false)}
+            onMouseEnter={() => !isFocused && setShowFocusHint(true)}
+            onMouseLeave={() => setShowFocusHint(false)}
+        >
             {/* HUD */}
             <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-start pointer-events-none z-10">
                 <div className="bg-gray-900/80 backdrop-blur px-4 py-2 rounded-lg border border-gray-700">
@@ -248,14 +258,23 @@ const BombGame = ({ active }) => {
                 ref={canvasRef}
                 width={600}
                 height={500}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover block"
             />
+
+            {/* CLICK TO FOCUS HINT */}
+            {gameState === 'playing' && !isFocused && showFocusHint && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20 pointer-events-none z-30 animate-fadeIn">
+                    <div className="bg-black/80 text-white px-4 py-2 rounded-full flex items-center gap-2 border border-white/20">
+                        <GiClick /> Click to Focus
+                    </div>
+                </div>
+            )}
 
             {/* LOBBY SCREEN */}
             {gameState === 'lobby' && (
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center z-20">
                     <div className="text-6xl mb-6 animate-bounce">💣</div>
-                    <h2 className="text-5xl font-black text-white font-space mb-2 tracking-wider">BOMB SQUAD</h2>
+                    <h2 className="text-5xl font-black text-white font-space mb-2 tracking-wider">BOMBER</h2>
                     <p className="text-gray-400 font-mono mb-8 text-center max-w-md">
                         Evade the falling ordnance. Survive as long as you can.<br />
                         <span className="text-yellow-500">Speed increases over time.</span>
@@ -268,8 +287,8 @@ const BombGame = ({ active }) => {
                             <GiGamepad className="text-2xl" />
                             DEPLOY AGENT
                         </span>
-                        <div className="absolute inset-0 border-2 border-white/20 rounded-xl group-hover:border-white/50 transition-colors" />
                     </button>
+                    <p className="mt-4 text-xs text-gray-500 font-mono">[ Arrow Keys to Move ]</p>
                 </div>
             )}
 
@@ -282,7 +301,6 @@ const BombGame = ({ active }) => {
                     <div className="bg-black/40 p-6 rounded-2xl border border-red-500/30 mb-8 w-64 text-center">
                         <p className="text-gray-400 text-sm font-mono mb-1">FINAL SCORE</p>
                         <p className="text-4xl font-bold text-white font-mono mb-4">{score}</p>
-
                         {score >= highScore && score > 0 && (
                             <div className="bg-yellow-500/20 text-yellow-500 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1 animate-pulse">
                                 <GiTrophy /> NEW RECORD

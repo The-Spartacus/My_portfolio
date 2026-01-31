@@ -22,6 +22,7 @@ const Home = () => {
   const { skills, fetchSkills } = useSkills();
   const { profile, fetchProfile } = useProfile();
   const [selectedProject, setSelectedProject] = useState(null);
+  const [gameActive, setGameActive] = useState(false);
 
   const heroRef = useRef(null);
 
@@ -65,7 +66,7 @@ const Home = () => {
             <div className="game-title mb-8">
               <div className="inline-block p-1 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 rounded-lg mb-4">
                 <div className="bg-dark px-4 py-2 rounded-lg border border-yellow-500/30">
-                  <span className="text-xs text-yellow-500 font-mono tracking-widest animate-pulse">PLAYER ID: DEV_001</span>
+                  <span className="text-xs text-yellow-500 font-mono tracking-widest animate-pulse">PLAYER ID: The_Spartacus_001</span>
                 </div>
               </div>
               <h1 className="font-space text-5xl md:text-7xl font-black text-white mb-4 text-shadow-glow leading-tight">
@@ -92,11 +93,18 @@ const Home = () => {
 
             {/* Main Menu */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg">
-              <button onClick={() => scrollTo('home')} className="menu-item group flex items-center gap-3 px-6 py-4 border-2 bg-gray-900/80 border-gray-700 hover:border-red-500 rounded-lg transition-all hover:shadow-[0_0_15px_rgba(239,68,68,0.5)]">
-                <GiGamepad className="text-2xl text-gray-400 group-hover:text-red-500 group-hover:animate-bounce" />
+              <button
+                onClick={() => setGameActive(true)}
+                className={`menu-item group flex items-center gap-3 px-6 py-4 border-2 rounded-lg transition-all 
+                  ${gameActive
+                    ? 'bg-red-900/20 border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.5)]'
+                    : 'bg-gray-900/80 border-gray-700 hover:border-red-500 hover:shadow-[0_0_15px_rgba(239,68,68,0.5)]'
+                  }`}
+              >
+                <GiGamepad className={`text-2xl ${gameActive ? 'text-red-500 animate-pulse' : 'text-gray-400 group-hover:text-red-500 group-hover:animate-bounce'}`} />
                 <div>
-                  <div className="text-sm font-bold text-white font-space">START MISSION</div>
-                  <div className="text-[10px] text-gray-400 font-mono">BOMB SQUAD</div>
+                  <div className="text-sm font-bold text-white font-space">{gameActive ? 'MISSION ACTIVE' : 'START MISSION'}</div>
+                  <div className={`text-[10px] font-mono ${gameActive ? 'text-red-400' : 'text-gray-400'}`}>BOMB SQUAD</div>
                 </div>
               </button>
               <button onClick={() => scrollTo('profile')} className="menu-item group flex items-center gap-3 px-6 py-4 border-2 bg-gray-900/80 border-gray-700 hover:border-purple-500 rounded-lg transition-all hover:shadow-[0_0_15px_rgba(168,85,247,0.5)]">
@@ -137,11 +145,13 @@ const Home = () => {
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Game (Permanent) */}
+          {/* RIGHT COLUMN: Game (Game vs Placeholder) */}
           <div className="order-1 lg:order-2 h-full w-full relative">
-            <div className="h-full border-2 border-red-500/30 bg-gray-900/50 backdrop-blur rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(239,68,68,0.2)]">
-              <BombGame active={true} />
-            </div>
+            {gameActive && (
+              <div className="h-full border-2 border-red-500/30 bg-gray-900/50 backdrop-blur rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(239,68,68,0.2)] animate-fadeIn">
+                <BombGame active={true} />
+              </div>
+            )}
           </div>
         </div>
       </section>
