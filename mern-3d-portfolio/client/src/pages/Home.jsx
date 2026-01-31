@@ -75,7 +75,7 @@ const Home = () => {
                 </span>
               </h1>
               <p className="text-xl text-gray-400 font-mono max-w-lg mb-6 leading-relaxed">
-                Full Stack Developer building immersive web experiences. Join the Bomb Squad.
+                Full Stack Developer building immersive web experiences.
               </p>
 
               <div className="flex gap-4 mb-8">
