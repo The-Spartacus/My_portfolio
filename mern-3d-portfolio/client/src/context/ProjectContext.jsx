@@ -1,5 +1,5 @@
 import { createContext, useState, useContext, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import axios from '../api/axios';
 import toast from 'react-hot-toast';
 
 const ProjectContext = createContext();
