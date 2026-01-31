@@ -65,7 +65,7 @@ const Home = () => {
 
       {/* HERO SECTION - Intro + Game */}
       <section ref={heroRef} id="home" className="min-h-screen flex items-center relative pt-24 pb-12 px-4 md:px-12 lg:px-20 overflow-hidden">
-        <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center min-h-[85vh] h-auto lg:h-[85vh]">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-[40%_60%] gap-8 lg:gap-16 items-center min-h-[85vh] h-auto lg:h-[85vh]">
 
           {/* LEFT COLUMN: Content */}
           <div className="text-left z-10 order-2 lg:order-1 flex flex-col justify-center h-full">
