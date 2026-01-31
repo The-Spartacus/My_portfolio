@@ -48,6 +48,12 @@ const skillSchema = new mongoose.Schema({
     color: {
         type: String,
         default: '#3b82f6'
+    },
+    percentage: {
+        type: Number,
+        min: 0,
+        max: 100,
+        default: 50
     }
 }, {
     timestamps: true

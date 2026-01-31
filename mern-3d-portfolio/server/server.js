@@ -19,6 +19,8 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/skills', require('./routes/skills'));
 app.use('/api/profile', require('./routes/profile'));
+app.use('/api/messages', require('./routes/messageRoutes'));
+app.use('/api/upload', require('./routes/uploadRoutes'));
 
 // Static files (uploads)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

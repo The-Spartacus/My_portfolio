@@ -5,6 +5,7 @@ import { AuthProvider } from './context/AuthContext';
 import { ProjectProvider } from './context/ProjectContext';
 import { SkillProvider } from './context/SkillContext';
 import { ProfileProvider } from './context/ProfileContext';
+import { MessageProvider } from './context/MessageContext';
 
 // Pages
 import Home from './pages/Home';
@@ -23,34 +24,36 @@ function App() {
         <ProjectProvider>
           <SkillProvider>
             <ProfileProvider>
-              <Router>
-                <div className="min-h-screen bg-dark">
+              <MessageProvider>
+                <Router>
+                  <div className="min-h-screen bg-dark">
 
-                  <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/admin" element={<AdminLogin />} />
-                    <Route
-                      path="/admin/dashboard"
-                      element={
-                        <PrivateRoute>
-                          <AdminDashboard />
-                        </PrivateRoute>
-                      }
+                    <Routes>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/admin" element={<AdminLogin />} />
+                      <Route
+                        path="/admin/dashboard"
+                        element={
+                          <PrivateRoute>
+                            <AdminDashboard />
+                          </PrivateRoute>
+                        }
+                      />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                    <Toaster
+                      position="top-right"
+                      toastOptions={{
+                        style: {
+                          background: '#1a1a2e',
+                          color: '#fff',
+                          border: '1px solid rgba(59, 130, 246, 0.2)',
+                        },
+                      }}
                     />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                  <Toaster
-                    position="top-right"
-                    toastOptions={{
-                      style: {
-                        background: '#1a1a2e',
-                        color: '#fff',
-                        border: '1px solid rgba(59, 130, 246, 0.2)',
-                      },
-                    }}
-                  />
-                </div>
-              </Router>
+                  </div>
+                </Router>
+              </MessageProvider>
             </ProfileProvider>
           </SkillProvider>
         </ProjectProvider>

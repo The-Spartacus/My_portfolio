@@ -7,6 +7,7 @@ import gsap from 'gsap';
 import { useProjects } from '../context/ProjectContext';
 import { useSkills } from '../context/SkillContext';
 import { useProfile } from '../context/ProfileContext';
+import { useAuth } from '../context/AuthContext';
 import ParticleBackground from '../components/ParticleBackground';
 import ProjectModal from '../components/ProjectModal';
 import GitHubContributions from '../components/GitHubContributions';
@@ -20,9 +21,11 @@ import GameWindow from '../components/GameWindow';
 const Home = () => {
   const { projects, fetchProjects } = useProjects();
   const { skills, fetchSkills } = useSkills();
-  const { profile, fetchProfile } = useProfile();
+  const { profile, fetchProfile, incrementVisits } = useProfile();
+  const { user } = useAuth();
   const [selectedProject, setSelectedProject] = useState(null);
   const [gameActive, setGameActive] = useState(false);
+  const [profileActive, setProfileActive] = useState(false);
 
   const heroRef = useRef(null);
 
@@ -30,6 +33,7 @@ const Home = () => {
     fetchProjects();
     fetchSkills();
     fetchProfile();
+    // incrementVisits(); // Moved to explicit click handler
 
     const ctx = gsap.context(() => {
       gsap.fromTo('.game-title', { y: 100, opacity: 0 }, { y: 0, opacity: 1, duration: 1, ease: "power4.out" });
@@ -52,10 +56,12 @@ const Home = () => {
       <div className="scanline-anim"></div>
 
       {/* Global HUD Header */}
-      <div className="fixed top-0 left-0 right-0 h-1 bg-green-500/50 z-40"></div>
-      <div className="fixed top-0 left-4 text-xs font-mono text-green-500 z-40 mt-2 text-shadow-glow">SYSTEM: ONLINE</div>
-      <div className="fixed top-0 right-4 text-xs font-mono text-green-500 z-40 mt-2 text-shadow-glow">SECURE CONNECTION</div>
-      <div className="fixed bottom-0 left-0 right-0 h-1 bg-green-500/50 z-40"></div>
+      <div className="fixed top-0 left-0 right-0 h-1 bg-green-500/50 z-60"></div>
+      <div className="fixed top-0 left-4 text-xs font-mono text-green-500 z-60 mt-2 text-shadow-glow">
+        SYSTEM: ONLINE
+      </div>
+      <div className="fixed top-0 right-4 text-xs font-mono text-green-500 z-60 mt-2 text-shadow-glow">SECURE CONNECTION</div>
+      <div className="fixed bottom-0 left-0 right-0 h-1 bg-green-500/50 z-60"></div>
 
       {/* HERO SECTION - Intro + Game */}
       <section ref={heroRef} id="home" className="min-h-screen flex items-center relative pt-20 pb-12 px-6 md:px-12 lg:px-20">
@@ -94,7 +100,10 @@ const Home = () => {
             {/* Main Menu */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg">
               <button
-                onClick={() => setGameActive(true)}
+                onClick={() => {
+                  setGameActive(true);
+                  setProfileActive(false);
+                }}
                 className={`menu-item group flex items-center gap-3 px-6 py-4 border-2 rounded-lg transition-all 
                   ${gameActive
                     ? 'bg-red-900/20 border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.5)]'
@@ -107,11 +116,22 @@ const Home = () => {
                   <div className={`text-[10px] font-mono ${gameActive ? 'text-red-400' : 'text-gray-400'}`}>BOMB SQUAD</div>
                 </div>
               </button>
-              <button onClick={() => scrollTo('profile')} className="menu-item group flex items-center gap-3 px-6 py-4 border-2 bg-gray-900/80 border-gray-700 hover:border-purple-500 rounded-lg transition-all hover:shadow-[0_0_15px_rgba(168,85,247,0.5)]">
-                <GiCharacter className="text-2xl text-purple-500" />
+              <button
+                onClick={() => {
+                  setProfileActive(true);
+                  setGameActive(false);
+                  incrementVisits(); // Count visit only on click
+                }}
+                className={`menu-item group flex items-center gap-3 px-6 py-4 border-2 rounded-lg transition-all 
+                  ${profileActive
+                    ? 'bg-purple-900/20 border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.5)]'
+                    : 'bg-gray-900/80 border-gray-700 hover:border-purple-500 hover:shadow-[0_0_15px_rgba(168,85,247,0.5)]'
+                  }`}
+              >
+                <GiCharacter className={`text-2xl ${profileActive ? 'text-purple-500 animate-pulse' : 'text-purple-500'}`} />
                 <div className="text-left">
-                  <div className="text-sm font-bold text-white font-space">PLAYER PROFILE</div>
-                  <div className="text-[10px] text-purple-500 font-mono">VIEW STATS</div>
+                  <div className="text-sm font-bold text-white font-space">{profileActive ? 'PROFILE ACTIVE' : 'PLAYER PROFILE'}</div>
+                  <div className={`text-[10px] font-mono ${profileActive ? 'text-purple-400' : 'text-purple-500'}`}>VIEW STATS</div>
                 </div>
               </button>
               <button onClick={() => scrollTo('projects')} className="menu-item group flex items-center gap-3 px-6 py-4 border-2 bg-gray-900/80 border-gray-700 hover:border-yellow-500 rounded-lg transition-all hover:shadow-[0_0_15px_rgba(234,179,8,0.5)]">
@@ -145,30 +165,51 @@ const Home = () => {
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Game (Game vs Placeholder) */}
+          {/* RIGHT COLUMN: Game (Game vs Placeholder vs Profile) */}
           <div className="order-1 lg:order-2 h-full w-full relative">
             {gameActive && (
-              <div className="h-full border-2 border-red-500/30 bg-gray-900/50 backdrop-blur rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(239,68,68,0.2)] animate-fadeIn">
+              <div className="h-full border-2 border-red-500/30 bg-gray-900/50 backdrop-blur rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(239,68,68,0.2)] animate-fadeIn relative">
                 <BombGame active={true} />
+                <button
+                  onClick={() => setGameActive(false)}
+                  className="absolute top-4 right-4 z-50 p-2 bg-red-600/20 hover:bg-red-600 text-red-500 hover:text-white rounded-lg border border-red-500 transition-all"
+                >
+                  <GiExitDoor size={20} />
+                </button>
+              </div>
+            )}
+
+            {profileActive && (
+              <div className="h-full border-2 border-purple-500/30 bg-gray-900/50 backdrop-blur rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(168,85,247,0.2)] animate-glitch-reveal relative">
+                <div className="h-full overflow-y-auto custom-scrollbar p-6">
+                  <ProfileStats profile={profile} isAdmin={!!user} />
+                </div>
+                <button
+                  onClick={() => setProfileActive(false)}
+                  className="absolute top-4 right-4 z-50 p-2 bg-purple-600/20 hover:bg-purple-600 text-purple-500 hover:text-white rounded-lg border border-purple-500 transition-all"
+                >
+                  <GiExitDoor size={20} />
+                </button>
               </div>
             )}
           </div>
         </div>
       </section>
 
-      {/* SECTION 2: PROFILE */}
-      <section id="profile" className="py-20 px-6 md:px-12 lg:px-24 relative">
-        <div className="max-w-7xl mx-auto h-[600px]">
-          <GameWindow title="PLAYER PROFILE" color="purple" className="h-full">
-            <ProfileStats profile={profile} />
-          </GameWindow>
-        </div>
-      </section>
+      {/* SECTION 2: HIDDEN PROFILE (MOVED TO TOP) - Keeping ID for scroll compatibility if needed by other links, 
+          but visually it's now handled by the top button. 
+          We can either keep this section or remove it. 
+          The user asked to show it on the RIGHT side, implying we can likely remove this redundant section 
+          OR keep it as a fallback. For now, I'll comment it out or leave it empty to avoid duplication.
+      */}
+      {/* <section id="profile" className="py-20 px-6 md:px-12 lg:px-24 relative hidden"> 
+           ... Moved to Top Right ...
+      </section> */}
 
       {/* SECTION 3: SKILLS */}
       <section id="skills" className="py-20 px-6 md:px-12 lg:px-24 relative">
-        <div className="max-w-7xl mx-auto h-[700px]">
-          <GameWindow title="INVENTORY" color="blue" className="h-full">
+        <div className="max-w-7xl mx-auto">
+          <GameWindow title="INVENTORY" color="blue">
             <SkillsPanel skills={skills} />
           </GameWindow>
         </div>

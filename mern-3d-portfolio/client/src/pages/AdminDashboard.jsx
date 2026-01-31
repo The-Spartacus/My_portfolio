@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
+import axios from '../api/axios';
 import { useProjects } from '../context/ProjectContext';
 import { useAuth } from '../context/AuthContext';
 import { FiPlus, FiTrash2, FiEdit3, FiX, FiSave } from 'react-icons/fi';
 import { GiGamepad, GiTrophy, GiCog, GiExitDoor, GiSkills, GiCharacter } from 'react-icons/gi';
 import { useSkills } from '../context/SkillContext';
 import { useProfile } from '../context/ProfileContext';
+import { useMessages } from '../context/MessageContext';
 import SkillItem from '../components/SkillItem';
 import toast from 'react-hot-toast';
+import { FaEnvelope, FaTrash, FaCheck } from 'react-icons/fa';
 
 const AdminDashboard = () => {
   const {
@@ -30,7 +33,8 @@ const AdminDashboard = () => {
     power: 3,
     description: '',
     damage: 75,
-    speed: 80
+    speed: 80,
+    percentage: 50
   });
 
   useEffect(() => {
@@ -43,12 +47,21 @@ const AdminDashboard = () => {
     title: 'Level 1 Developer',
     bio: '',
     stats: [],
-    socialLinks: { github: '', linkedin: '', email: '' }
+    socialLinks: { github: '', linkedin: '', email: '' },
+    avatar: '',
+    isOnline: false
   });
 
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
+
+  // Messages Context
+  const { messages, fetchMessages, deleteMessage, markAsRead } = useMessages();
+
+  useEffect(() => {
+    fetchMessages();
+  }, [fetchMessages]);
 
   useEffect(() => {
     if (profile) {
@@ -56,7 +69,9 @@ const AdminDashboard = () => {
         title: profile.title || '',
         bio: profile.bio || '',
         stats: profile.stats || [],
-        socialLinks: profile.socialLinks || { github: '', linkedin: '', email: '' }
+        socialLinks: profile.socialLinks || { github: '', linkedin: '', email: '' },
+        avatar: profile.avatar || '',
+        isOnline: profile.isOnline || false
       });
     }
   }, [profile]);
@@ -165,7 +180,8 @@ const AdminDashboard = () => {
       power: 3,
       description: '',
       damage: 75,
-      speed: 80
+      speed: 80,
+      percentage: 50
     });
   };
 
@@ -180,6 +196,29 @@ const AdminDashboard = () => {
       featured: false,
       difficulty: 'medium'
     });
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const uploadToast = toast.loading('Uploading image...');
+
+    try {
+      const res = await axios.post('/api/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      setProfileData({ ...profileData, avatar: res.data.url });
+      toast.success('Image uploaded successfully', { id: uploadToast });
+    } catch (error) {
+      toast.error('Image upload failed', { id: uploadToast });
+      console.error(error);
+    }
   };
 
   return (
@@ -208,7 +247,7 @@ const AdminDashboard = () => {
           {[
             { id: 'dashboard', label: '📊 DASHBOARD', icon: <GiGamepad /> },
             { id: 'projects', label: '🎮 MISSIONS', icon: <GiTrophy /> },
-            { id: 'projects', label: '🎮 MISSIONS', icon: <GiTrophy /> },
+            { id: 'messages', label: '📨 MESSAGES', icon: <FaEnvelope /> },
             { id: 'skills', label: '⚡ SKILLS', icon: <GiSkills /> },
             { id: 'character', label: '👤 CHARACTER', icon: <GiCharacter /> },
             { id: 'settings', label: '⚙️ SYSTEM', icon: <GiCog /> }
@@ -358,6 +397,75 @@ const AdminDashboard = () => {
           </div>
         )}
 
+        {/* MESSAGES TAB */}
+        {activeTab === 'messages' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-white font-space mb-6">INCOMING TRANSMISSIONS</h2>
+
+            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-800 text-gray-400 font-mono text-sm uppercase">
+                    <th className="p-4 border-b border-gray-700">Status</th>
+                    <th className="p-4 border-b border-gray-700">Sender</th>
+                    <th className="p-4 border-b border-gray-700">Message</th>
+                    <th className="p-4 border-b border-gray-700">Date</th>
+                    <th className="p-4 border-b border-gray-700">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-800">
+                  {messages.length > 0 ? (
+                    messages.map((msg) => (
+                      <tr key={msg._id} className={`hover:bg-gray-800/50 transition-colors ${!msg.read ? 'bg-yellow-500/5' : ''}`}>
+                        <td className="p-4">
+                          {msg.read ? (
+                            <span className="flex items-center gap-2 text-gray-500 font-mono text-xs">
+                              <FaCheck /> READ
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => markAsRead(msg._id)}
+                              className="px-2 py-1 bg-yellow-500/20 text-yellow-500 text-xs rounded font-mono hover:bg-yellow-500 hover:text-black transition-colors"
+                            >
+                              MARK READ
+                            </button>
+                          )}
+                        </td>
+                        <td className="p-4">
+                          <div className="font-bold text-white">{msg.name}</div>
+                          <div className="text-gray-500 text-sm">{msg.email}</div>
+                        </td>
+                        <td className="p-4 text-gray-300 min-w-[200px]" title={msg.message}>
+                          <div className="whitespace-pre-wrap">{msg.message}</div>
+                        </td>
+                        <td className="p-4 text-gray-500 font-mono text-sm">
+                          {new Date(msg.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="p-4">
+                          <button
+                            onClick={() => {
+                              if (window.confirm('Delete message?')) deleteMessage(msg._id);
+                            }}
+                            className="text-red-500 hover:text-red-400 p-2 rounded hover:bg-red-500/10"
+                          >
+                            <FaTrash />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="5" className="p-8 text-center text-gray-500 font-mono">
+                        NO TRANSMISSIONS RECEIVED
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
         {/* SKILLS TAB */}
         {activeTab === 'skills' && (
           <div>
@@ -421,12 +529,54 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
+              <div className="grid md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <label className="block text-yellow-500 font-mono text-sm mb-2">AVATAR URL / UPLOAD</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={profileData.avatar}
+                      onChange={(e) => setProfileData({ ...profileData, avatar: e.target.value })}
+                      className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-yellow-500"
+                      placeholder="https://..."
+                    />
+                    <label className="cursor-pointer bg-gray-700 hover:bg-gray-600 px-4 py-3 rounded-lg border border-gray-600 flex items-center justify-center text-white transition-colors">
+                      <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
+                      <span className="text-xl">📂</span>
+                    </label>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-yellow-500 font-mono text-sm mb-2">OPERATIONAL STATUS</label>
+                  <div className="flex items-center gap-4 h-[50px]">
+                    <button
+                      type="button"
+                      onClick={() => setProfileData({ ...profileData, isOnline: !profileData.isOnline })}
+                      className={`
+                            relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none
+                            ${profileData.isOnline ? 'bg-green-500' : 'bg-gray-700'}
+                          `}
+                    >
+                      <span
+                        className={`
+                              inline-block h-5 w-5 transform rounded-full bg-white transition-transform
+                              ${profileData.isOnline ? 'translate-x-7' : 'translate-x-1'}
+                            `}
+                      />
+                    </button>
+                    <span className={`font-mono font-bold ${profileData.isOnline ? 'text-green-500' : 'text-gray-500'}`}>
+                      {profileData.isOnline ? 'ONLINE' : 'OFFLINE'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
               <div className="grid md:grid-cols-3 gap-6">
                 <div>
                   <label className="block text-yellow-500 font-mono text-sm mb-2">GITHUB URL</label>
                   <input
                     type="text"
-                    value={profileData.socialLinks.github}
+                    value={profileData.socialLinks?.github || ''}
                     onChange={(e) => setProfileData({ ...profileData, socialLinks: { ...profileData.socialLinks, github: e.target.value } })}
                     className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-yellow-500"
                     placeholder="https://github.com/..."
@@ -600,6 +750,18 @@ const AdminDashboard = () => {
                         className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
                       />
                     </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-yellow-500 font-mono text-sm mb-2">MASTERY PERCENTAGE (0-100)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={skillFormData.percentage}
+                      onChange={(e) => setSkillFormData({ ...skillFormData, percentage: parseInt(e.target.value) })}
+                      className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
+                    />
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-4">

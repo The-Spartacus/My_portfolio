@@ -1,16 +1,28 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { FaPaperPlane, FaBroadcastTower } from 'react-icons/fa';
+import axios from '../api/axios';
+import toast from 'react-hot-toast';
 
 const ContactPanel = () => {
     const [status, setStatus] = useState('IDLE'); // IDLE, SENDING, SENT
 
-    const handleSubmit = (e) => {
+    const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setStatus('SENDING');
-        setTimeout(() => {
+
+        try {
+            await axios.post('/api/messages', formData);
             setStatus('SENT');
+            toast.success('Message Transmitted!');
+            setFormData({ name: '', email: '', message: '' });
             setTimeout(() => setStatus('IDLE'), 3000);
-        }, 1500);
+        } catch (error) {
+            console.error(error);
+            toast.error('Transmission Failed');
+            setStatus('IDLE');
+        }
     };
 
     return (
@@ -47,6 +59,8 @@ const ContactPanel = () => {
                                 {'>'} IDENTITY_VERIFICATION (NAME)
                             </label>
                             <input
+                                value={formData.name}
+                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                 type="text"
                                 required
                                 className="w-full bg-gray-900/80 border-b-2 border-gray-700 px-4 py-3 text-white font-mono focus:border-green-500 focus:bg-green-900/10 focus:outline-none transition-all placeholder-gray-700"
@@ -59,6 +73,8 @@ const ContactPanel = () => {
                                 {'>'} COMM_FREQUENCY (EMAIL)
                             </label>
                             <input
+                                value={formData.email}
+                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                 type="email"
                                 required
                                 className="w-full bg-gray-900/80 border-b-2 border-gray-700 px-4 py-3 text-white font-mono focus:border-green-500 focus:bg-green-900/10 focus:outline-none transition-all placeholder-gray-700"
@@ -71,6 +87,8 @@ const ContactPanel = () => {
                                 {'>'} PACKET_DATA (MESSAGE)
                             </label>
                             <textarea
+                                value={formData.message}
+                                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                                 rows="4"
                                 required
                                 className="w-full bg-gray-900/80 border-b-2 border-gray-700 px-4 py-3 text-white font-mono focus:border-green-500 focus:bg-green-900/10 focus:outline-none transition-all placeholder-gray-700 resize-none"

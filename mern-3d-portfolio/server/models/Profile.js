@@ -19,9 +19,30 @@ const profileSchema = new mongoose.Schema({
         color: String
     }],
     socialLinks: {
-        github: { type: String, default: 'https://github.com' },
-        linkedin: { type: String, default: 'https://linkedin.com' },
-        email: { type: String, default: 'mailto:contact@example.com' }
+        github: { type: String, default: '' },
+        linkedin: { type: String, default: '' },
+        twitter: { type: String, default: '' },
+        email: { type: String, default: '' }
+    },
+    resumeUrl: {
+        type: String,
+        default: ''
+    },
+    location: {
+        type: String,
+        default: 'Earth'
+    },
+    avatar: {
+        type: String,
+        default: ''
+    },
+    visitCount: {
+        type: Number,
+        default: 0
+    },
+    isOnline: {
+        type: Boolean,
+        default: false
     }
 }, {
     timestamps: true

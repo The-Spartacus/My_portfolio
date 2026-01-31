@@ -39,6 +39,14 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('token', res.data.token);
         axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
         setUser(res.data.user);
+
+        // Auto-set Online Status
+        try {
+          await axios.put('/api/profile', { isOnline: true });
+        } catch (err) {
+          console.error('Failed to auto-set online status', err);
+        }
+
         toast.success('Welcome back, Admin!');
         return true;
       }
@@ -48,7 +56,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await axios.put('/api/profile', { isOnline: false });
+    } catch (err) {
+      console.error('Failed to auto-set offline status', err);
+    }
+
     localStorage.removeItem('token');
     delete axios.defaults.headers.common['Authorization'];
     setUser(null);
