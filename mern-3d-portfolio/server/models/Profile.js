@@ -18,6 +18,18 @@ const profileSchema = new mongoose.Schema({
         value: Number,
         color: String
     }],
+    specializations: {
+        type: [String],
+        default: ['Frontend', 'Backend']
+    },
+    playerClass: {
+        type: String,
+        default: 'Developer'
+    },
+    rank: {
+        type: String,
+        default: 'Rookie'
+    },
     socialLinks: {
         github: { type: String, default: '' },
         linkedin: { type: String, default: '' },

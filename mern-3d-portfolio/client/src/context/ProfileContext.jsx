@@ -79,6 +79,8 @@ const defaultProfile = {
     visitCount: 1337,
     level: 99,
     levelProgress: 85,
+    playerClass: "Architect",
+    rank: "Legendary",
 
     specializations: [
         "Frontend DPS",

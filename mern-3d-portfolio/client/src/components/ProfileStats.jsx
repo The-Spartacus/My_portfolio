@@ -17,17 +17,8 @@ const ProfileStats = ({ profile, isAdmin }) => {
         );
     }
 
-    const handleTagEdit = (tagType, currentValue) => {
-        if (!isAdmin) return;
-        const newValue = prompt(`Edit ${tagType}:`, currentValue);
-        if (newValue && newValue !== currentValue) {
-            // Ideally trigger an update function here passed via props
-            console.log(`Updating ${tagType} to: ${newValue}`);
-            // Since we don't have a direct update prop yet, we rely on the parent or context to handle updates
-            // For now, we just log it as the user asked to make it "editable" in the UI sense.
-            // In a real scenario, we'd call onUpdateProfile({ [tagType.toLowerCase()]: newValue });
-        }
-    };
+    // Tag editing is now handled via the Admin Dashboard
+    // const handleTagEdit = ... (removed)
 
     return (
         <div className="relative h-full flex flex-col p-6 bg-black/40 border border-purple-500/30 rounded-xl overflow-hidden hover:shadow-[0_0_60px_rgba(139,92,246,0.3)] transition">
@@ -92,41 +83,20 @@ const ProfileStats = ({ profile, isAdmin }) => {
 
 
                 {/* Tags */}
-                <div className="flex gap-2 flex-wrap">
-                    <span
-                        onClick={() => handleTagEdit('Class', 'DEVELOPER')}
-                        className={`px-3 py-1 text-xs font-mono bg-purple-500/20 border border-purple-500/30 rounded text-purple-300 ${isAdmin ? 'cursor-pointer hover:bg-purple-500/40 hover:border-purple-400' : ''}`}
-                        title={isAdmin ? "Click to edit" : ""}
-                    >
-                        CLASS: DEVELOPER
+                <div className="flex gap-2 flex-wrap mb-4">
+                    <span className="px-3 py-1 text-xs font-mono bg-purple-500/20 border border-purple-500/30 rounded text-purple-300">
+                        CLASS: {profile.playerClass || 'DEVELOPER'}
                     </span>
-                    <span
-                        onClick={() => handleTagEdit('Rank', 'VETERAN')}
-                        className={`px-3 py-1 text-xs font-mono bg-blue-500/20 border border-blue-500/30 rounded text-blue-300 ${isAdmin ? 'cursor-pointer hover:bg-blue-500/40 hover:border-blue-400' : ''}`}
-                        title={isAdmin ? "Click to edit" : ""}
-                    >
-                        RANK: VETERAN
+                    <span className="px-3 py-1 text-xs font-mono bg-blue-500/20 border border-blue-500/30 rounded text-blue-300">
+                        RANK: {profile.rank || 'ROOKIE'}
                     </span>
-                    {profile.specializations.map((spec, i) => (
+                    {profile.specializations?.map((spec, i) => (
                         <span
                             key={i}
-                            onClick={() => handleTagEdit('Specialization', spec)}
-                            className={`px-3 py-1 text-xs font-mono bg-gray-800 border border-gray-600 rounded text-gray-300 ${isAdmin ? 'cursor-pointer hover:bg-gray-700 hover:border-gray-500' : ''}`}
-                            title={isAdmin ? "Click to edit" : ""}
+                            className="px-3 py-1 text-xs font-mono bg-gray-800 border border-gray-600 rounded text-gray-300"
                         >
                             {spec}
                         </span>
-                    ))}
-                </div>
-
-                {/* STATS GRID */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {profile.stats.map((stat, i) => (
-                        <div key={i} className="bg-gray-800/40 p-3 rounded border border-gray-700 text-center hover:bg-gray-700/40 transition">
-                            <div className={`w-2 h-2 rounded-full mx-auto mb-2 ${stat.color}`} />
-                            <div className="text-xl font-bold text-white font-space">{stat.value}</div>
-                            <div className="text-[10px] text-gray-500 font-mono tracking-wider">{stat.label}</div>
-                        </div>
                     ))}
                 </div>
 
