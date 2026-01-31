@@ -223,11 +223,24 @@ const BombGame = ({ active }) => {
     };
 
     // Start Loop on Mount (for background)
+    // Start Loop and Handle Resize
     useEffect(() => {
+        const handleResize = () => {
+            if (containerRef.current && canvasRef.current) {
+                canvasRef.current.width = containerRef.current.clientWidth;
+                canvasRef.current.height = containerRef.current.clientHeight;
+            }
+        };
+        handleResize();
+        window.addEventListener('resize', handleResize);
+
         if (!requestRef.current) {
             requestRef.current = requestAnimationFrame(gameLoop);
         }
-        return () => cancelAnimationFrame(requestRef.current);
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            cancelAnimationFrame(requestRef.current);
+        };
     }, []);
 
     return (
@@ -256,9 +269,7 @@ const BombGame = ({ active }) => {
 
             <canvas
                 ref={canvasRef}
-                width={600}
-                height={500}
-                className="w-full h-full object-cover block"
+                className="w-full h-full block touch-none"
             />
 
             {/* CLICK TO FOCUS HINT */}
